@@ -14,10 +14,7 @@ type SlugReader interface {
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /posts/{slug}", func(w http.ResponseWriter, r *http.Request) {
-		slug := r.PathValue("slug")
-		fmt.Fprintf(w, "Post: %s", slug)
-	})
+	mux.HandleFunc("GET /posts/{slug}", PostHandler(FileReader{}))
 
 	err := http.ListenAndServe(":7070", mux)
 	if err != nil {
