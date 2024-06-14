@@ -43,3 +43,17 @@ func (fsr FileReader) Reader(slug string) (string, error) {
 
 	return string(b), nil
 }
+
+func PostHandler(sl SlugReader) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		slug := r.PathValue("slug")
+		postMarkdown, err := sl.Reader(slug)
+		if err != nil {
+			// TODO: To handle different errors in the future
+			http.Error(w, "Post not found!", http.StatusNotFound)
+		}
+
+		fmt.Fprint(w, postMarkdown)
+
+	}
+}
