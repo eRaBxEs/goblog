@@ -48,6 +48,7 @@ func PostHandler(sl SlugReader) http.HandlerFunc {
 		if err != nil {
 			// TODO: To handle different errors in the future
 			http.Error(w, "Post not found!", http.StatusNotFound)
+			return
 		}
 
 		fmt.Fprint(w, postMarkdown)
