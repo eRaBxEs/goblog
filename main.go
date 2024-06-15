@@ -1,11 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"bytes"
 	"io"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/yuin/goldmark"
+	highlighting "github.com/yuin/goldmark-highlighting/v2"
 )
 
 type SlugReader interface {
@@ -46,12 +49,29 @@ func PostHandler(sl SlugReader) http.HandlerFunc {
 		slug := r.PathValue("slug")
 		postMarkdown, err := sl.Reader(slug)
 		if err != nil {
+			http.Error(w, "Error reading from file", http.StatusInternalServerError)
+			return
+		}
+		mdRenderer := goldmark.New(
+			goldmark.WithExtensions(
+				highlighting.NewHighlighting(
+					highlighting.WithStyle("dracula"),
+				),
+			),
+		)
+		var buf bytes.Buffer
+		err = mdRenderer.Convert([]byte(postMarkdown), &buf)
+		if err != nil {
+			http.Error(w, "Error converting markdown", http.StatusInternalServerError)
+			return
+		}
+		if err != nil {
 			// TODO: To handle different errors in the future
 			http.Error(w, "Post not found!", http.StatusNotFound)
 			return
 		}
 
-		fmt.Fprint(w, postMarkdown)
+		io.Copy(w, &buf)
 
 	}
 }
