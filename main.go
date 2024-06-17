@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -71,7 +72,32 @@ func PostHandler(sl SlugReader) http.HandlerFunc {
 			return
 		}
 
-		io.Copy(w, &buf)
+		// TODO: Parse the template once, not every page load.
+		tpl, err := template.ParseFiles("post.gohtml")
+		if err != nil {
+			http.Error(w, "Error parsing template", http.StatusInternalServerError)
+			return
+		}
+
+		// TODO: Stop hardcoding post data. Parse from frontmatter.
+		err = tpl.Execute(w, PostData{
+			Title:   "My First Post",
+			Content: template.HTML(buf.String()),
+			Author:  "Ehioje Erabor",
+		})
+
+		if err != nil {
+			http.Error(w, "Error rendering content", http.StatusInternalServerError)
+			return
+		}
+
+		// io.Copy(w, &buf)
 
 	}
+}
+
+type PostData struct {
+	Title   string
+	Content template.HTML
+	Author  string
 }
